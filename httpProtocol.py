@@ -83,19 +83,20 @@ class Response:
     def not_found_response(self):
         self.status = 404
         self.statement = self.CODE_TO_STATEMENT[self.status]
-        self.file_data = f"<html>" \
-                         f" <body>" \
-                         f"     <h1>{self.status} {self.statement}</h1>" \
-                         f" </body>" \
-                         f"</html>"
+        self.file_data = "<html>" \
+                         " <body>" \
+                         "     <h1>{self.status} {self.statement}</h1>" \
+                         " </body>" \
+                         "</html>"
         self.content_type = "text/html; charset=utf-8"
 
     def generate_response(self):
-        return f"HTTP/1.1 {self.status} {self.statement}\r\n" \
-               f"Content-Length: {len(self.file_data.encode())}\r\n" \
+        headers = f"HTTP/1.1 {self.status} {self.statement}\r\n" \
+               f"Content-Length: {len(self.file_data)}\r\n" \
                f"Content-Type: {self.content_type}\r\n" \
-               f"\r\n" \
-               f"{self.file_data}"
+               f"\r\n"
+        response = headers.encode()
+        return response.__add__(self.file_data)
 
     def set_content_type(self):
         file_type = self.file_url.split(".")[-1]
@@ -113,11 +114,11 @@ class Response:
 
     def get_file_data(self):
         with open(self.file_url, 'rb') as file:
-            self.file_data = file.read().decode()
+            self.file_data = bytearray(file.read())
 
     def send_to_client(self, soc):
         data = self.generate_response()
-        soc.sendall(data.encode())
+        soc.sendall(data)
 
     def is_file_valid(self):
         if self.file_url == "":
