@@ -12,16 +12,18 @@ print("Server is up and running")
 def handle_client(soc, addr):
     try:
         print(f"Connected to {addr}")
-        client_request = httpProtocol.Request(soc)
+        client_request = httpProtocol.Request(soc.recv(1024))
         print(client_request)
         while True:
             response = httpProtocol.Response(client_request)
-            response.send_to_client(soc)
-            client_request.__init__(soc)
+            soc.sendall(response.generate())
+            print(response)
+            client_request.__init__(soc.recv(1024))
     except Exception as e:
         print(e)
-    soc.close()
-    print("closed")
+    finally:
+        soc.close()
+        print("closed")
 
 
 def listen_to_client():
